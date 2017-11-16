@@ -6,7 +6,7 @@ __module_version__ = '1.0'
 __module_description__ = 'Adapt Hexchat UI for external bridges'
 __author__ = 'Stockage'
 
-bot_nick = "molden"
+bot_nick = "dsc"
 re_nick_format = "^:([a-zA-Z0-9_\-\\\[\]{}\^`|]+)!"
 re_msg_format = "^:<(.+)> (.+)$"
 re_cmd_format = "^:Command sent from Discord by (.+):$"
