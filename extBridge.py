@@ -7,7 +7,7 @@ __module_description__ = 'Adapt Hexchat UI for external bridges'
 __author__ = 'Stockage'
 
 bot_nick = "dsc"
-re_msg_format = "^<(.+)> (.+)$"
+re_msg_format = "^<([^>]+)> (.+)$"
 re_cmd_format = "^Cmd by (.+)$"
 
 cmd_nick = None
