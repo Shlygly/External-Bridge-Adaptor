@@ -9,6 +9,7 @@ __author__ = 'Stockage'
 bot_nick = "dsc"
 bot_vhost = "discord.newbiecontest.org"
 quit_message = "Disconnected from discord"
+nick_prefix = "<DSC>"
 re_msg_format = "^<([^>]+)> (.+)$"
 re_cmd_format = "^Cmd by (.+)$"
 re_join_format = "^(.+) has joined$"
@@ -18,10 +19,11 @@ re_rename_format = "^(.+) is now known as (.+)$"
 cmd_nick = None
 
 def EmitMsg(nick, message, mode):
-    hilight = hexchat.get_info("nick") in message
-    hexchat.emit_print("Channel Msg Hilight" if hilight else "Channel Message", nick, message, mode, "\00306<DSC>" + ("\00303" if hilight else "\00302"))
+    highlight = hexchat.get_info("nick") in message
+    same_user = hexchat.get_info("nick") == nick
+    hexchat.emit_print("Channel Msg Hilight" if highlight else "Channel Message", ("\x0304" if same_user else "") + nick, message, mode, "\00306" + nick_prefix + ("\00303" if highlight else "\00302"))
     # TODO : Gérer la couleur actuelle du chan
-    hexchat.command("GUI COLOR {}".format("3" if hilight else "2"))
+    hexchat.command("GUI COLOR {}".format("3" if highlight else "2"))
 
 def msg_cmd(word, word_eol, userdata):
     global cmd_nick
