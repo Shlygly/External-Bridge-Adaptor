@@ -27,7 +27,6 @@ def EmitMsg(nick, message, mode):
         hexchat.emit_print("Channel Msg Hilight", nick, message, mode, "\00306" + nick_prefix + "\00303")
     else:
         hexchat.emit_print("Channel Message", nick, message, mode, "\00306" + nick_prefix + "\00302")
-    # hexchat.emit_print("Channel Msg Hilight" if hilight else "Channel Message", ("\x0304" if same_user else "") + nick, message, mode, "\00306" + nick_prefix + ("\00303" if hilight else "\00302"))
     # TODO : Gérer la couleur actuelle du chan
     hexchat.command("GUI COLOR {}".format("3" if hilight else "2"))
 
@@ -51,19 +50,20 @@ def msg_cmd(word, word_eol, userdata):
             return hexchat.EAT_HEXCHAT
         # Someone joined
         elif (len(re.findall(re_join_format, word[1])) > 0):
-            nick = hexchat.strip(re.findall(re_join_format, word[1])[0])
+            nick = nick_prefix + hexchat.strip(re.findall(re_join_format, word[1])[0])
             hexchat.command("RECV :{}!~{}@{} JOIN {}".format(nick, bot_nick, bot_vhost, hexchat.get_info("channel")))
+            hexchat.command("RECV :{}!~{}@{} MODE {} +v {}".format(bot_nick, bot_nick, bot_vhost, hexchat.get_info("channel"), nick))
             return hexchat.EAT_HEXCHAT
         # Someone quit
         elif (len(re.findall(re_quit_format, word[1])) > 0):
-            nick = hexchat.strip(re.findall(re_quit_format, word[1])[0])
+            nick = nick_prefix + hexchat.strip(re.findall(re_quit_format, word[1])[0])
             hexchat.command("RECV :{}!~{}@{} QUIT {}".format(nick, bot_nick, bot_vhost, quit_message))
             return hexchat.EAT_HEXCHAT
         # Someone change his nick
         elif (len(re.findall(re_rename_format, word[1])) > 0):
             old_nick, new_nick = re.findall(re_rename_format, word[1])[0]
-            old_nick = hexchat.strip(old_nick)
-            new_nick = hexchat.strip(new_nick)
+            old_nick = nick_prefix + hexchat.strip(old_nick)
+            new_nick = nick_prefix + hexchat.strip(new_nick)
             hexchat.command("RECV :{}!~{}@{} NICK {}".format(old_nick, bot_nick, bot_vhost, new_nick))
             return hexchat.EAT_HEXCHAT
     return hexchat.EAT_NONE
