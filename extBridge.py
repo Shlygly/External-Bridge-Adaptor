@@ -43,7 +43,7 @@ def EmitMsg(nick, message, mode):
 
 def msg_cmd(word, word_eol, userdata):
     global cmd_nick
-    if (hexchat.nickcmp(word[0], bot_nick) == 0):
+    if (hexchat.nickcmp(hexchat.strip(word[0]), bot_nick) == 0):
         # Classic message
         if (len(re.findall(re_msg_format, word[1])) > 0):
             nick, message = re.findall(re_msg_format, word[1])[0]
