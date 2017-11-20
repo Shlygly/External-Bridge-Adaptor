@@ -114,7 +114,7 @@ def extbridge_cmd(word, word_eol, userdata):
         else:
             print("Unknown action {} for /EXTBRIDGE CONF".format(word[2]))
     elif (word[1].upper() == "RELOAD"):
-        hexchat.command("PY RELOAD \"{}\"".format(__module_name__))
+        hexchat.command("SETTEXT /PY RELOAD \"{}\"".format(__module_name__))
     else:
         print("Unknown option {} for /EXTBRIDGE".format(word[1]))
     return hexchat.EAT_ALL
