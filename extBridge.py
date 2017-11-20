@@ -14,19 +14,18 @@ def InitPref(name, default_value):
     return value
 
 def LoadPrefs():
-    global bot_nick, bot_vhost, quit_message, nick_prefix
+    global bot_nick, bot_vhost, quit_message, nick_prefix, re_msg_format, re_cmd_format, re_join_format, re_quit_format, re_rename_format
     bot_nick = InitPref("bot_nick", "dsc")
     bot_vhost = InitPref("bot_vhost", "discord.newbiecontest.org")
     quit_message = InitPref("quit_message", "Disconnected from discord")
     nick_prefix = InitPref("nick_prefix", "<DSC>")
+    re_msg_format = InitPref("re_msg_format", "^<([^>]+)> (.+)$")
+    re_cmd_format = InitPref("re_cmd_format", "^Cmd by (.+)$")
+    re_join_format = InitPref("re_join_format", "^(.+) has joined$")
+    re_quit_format = InitPref("re_quit_format", "^(.+) has quit$")
+    re_rename_format = InitPref("re_rename_format", "^(.+) is now known as (.+)$")
 
 LoadPrefs()
-
-re_msg_format = "^<([^>]+)> (.+)$"
-re_cmd_format = "^Cmd by (.+)$"
-re_join_format = "^(.+) has joined$"
-re_quit_format = "^(.+) has quit$"
-re_rename_format = "^(.+) is now known as (.+)$"
 
 cmd_nick = None
 
