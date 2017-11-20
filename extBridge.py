@@ -132,4 +132,4 @@ hooks = [
 
 hexchat.hook_unload(unload)
 
-print("\00307{} v{}\017 : Connected width \00306Discord !".format(__module_name__, __module_version__))
+print("\00307{} v{}\017 : Connected with \00306Discord !".format(__module_name__, __module_version__))
