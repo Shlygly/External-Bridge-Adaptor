@@ -2,14 +2,26 @@ import hexchat
 import re
 
 __module_name__ = 'External Bridge Adaptor'
-__module_version__ = '1.1'
+__module_version__ = '1.2'
 __module_description__ = 'Adapt Hexchat UI for external bridges'
 __author__ = 'Stockage'
 
-bot_nick = "dsc"
-bot_vhost = "discord.newbiecontest.org"
-quit_message = "Disconnected from discord"
-nick_prefix = "<DSC>"
+def InitPref(name, default_value):
+    value = hexchat.get_pluginpref(name)
+    if (value is None):
+        value = default_value
+        hexchat.set_pluginpref(name, value)
+    return value
+
+def LoadPrefs():
+    global bot_nick, bot_vhost, quit_message, nick_prefix
+    bot_nick = InitPref("bot_nick", "dsc")
+    bot_vhost = InitPref("bot_vhost", "discord.newbiecontest.org")
+    quit_message = InitPref("quit_message", "Disconnected from discord")
+    nick_prefix = InitPref("nick_prefix", "<DSC>")
+
+LoadPrefs()
+
 re_msg_format = "^<([^>]+)> (.+)$"
 re_cmd_format = "^Cmd by (.+)$"
 re_join_format = "^(.+) has joined$"
@@ -19,8 +31,8 @@ re_rename_format = "^(.+) is now known as (.+)$"
 cmd_nick = None
 
 def EmitMsg(nick, message, mode):
-    same_user = hexchat.nickcmp(hexchat.get_info("nick").lower(), nick.lower()) == 0
-    hilight = not same_user and hexchat.get_info("nick").lower() in message.lower()
+    same_user = (hexchat.nickcmp(hexchat.get_info("nick").lower(), nick.lower()) == 0)
+    hilight = (not same_user and hexchat.get_info("nick").lower() in message.lower())
     if (same_user):
         hexchat.emit_print("Your Message", nick, message, mode, "\00306" + nick_prefix + "\00304")
     elif (hilight):
@@ -28,7 +40,7 @@ def EmitMsg(nick, message, mode):
     else:
         hexchat.emit_print("Channel Message", nick, message, mode, "\00306" + nick_prefix + "\00302")
     # TODO : Gérer la couleur actuelle du chan
-    hexchat.command("GUI COLOR {}".format("3" if hilight else "2"))
+    # hexchat.command("GUI COLOR {}".format("3" if hilight else "2"))
 
 def msg_cmd(word, word_eol, userdata):
     global cmd_nick
@@ -68,14 +80,55 @@ def msg_cmd(word, word_eol, userdata):
             return hexchat.EAT_HEXCHAT
     return hexchat.EAT_NONE
 
-    
+def extbridge_cmd(word, word_eol, userdata):
+    if (len(word) < 2):
+        hexchat.command("HELP EXTBRIDGE")
+    elif (word[1].upper() == "CONF"):
+        if (len(word) < 3):
+            print("/EXTBRIDGE CONF show|get <name>|set <name> <value>")
+        elif (word[2].lower() == "show"):
+            print("| {0:<20} | {1:<40} |".format("name", "value"))
+            print("|-" + "-"*20 + "-|-" + "-"*40 + "-|")
+            for name in hexchat.list_pluginpref():
+                print("| {0:<20} | {1:<40} |".format(name, hexchat.get_pluginpref(name)))
+        elif (word[2].lower() == "get"):
+            if (len(word) < 4):
+                print("/EXTBRIDGE CONF get <name>")
+            else:
+                value = hexchat.get_pluginpref(word[3])
+                if (value is None):
+                    print("This configuration key doesn't exists.")
+                else:
+                    print("{} : {}".format(word[3], value))
+        elif (word[2].lower() == "set"):
+            if (len(word) < 5):
+                print("/EXTBRIDGE CONF set <name> <value>")
+            else:
+                value = hexchat.get_pluginpref(word[3])
+                if (value is None):
+                    print("This configuration key doesn't exists.")
+                else:
+                    new_value = hexchat.strip(word_eol[4])
+                    hexchat.set_pluginpref(word[3], new_value)
+                    LoadPrefs()
+                    print("\00307{}\017 has been set to \00307{}\017".format(word[3], new_value))
+        else:
+            print("Unknown action {} for /EXTBRIDGE CONF".format(word[2]))
+    elif (word[1].upper() == "RELOAD"):
+        hexchat.command("PY RELOAD \"{}\"".format(__module_name__))
+    else:
+        print("Unknown option {} for /EXTBRIDGE".format(word[1]))
+    return hexchat.EAT_ALL
+
 def unload(userdata):
+    global hooks
     for hook in hooks:
         hexchat.unhook(hook)
 
 hooks = [
     hexchat.hook_print("Channel Message", msg_cmd),
-    hexchat.hook_print("Channel Msg Hilight", msg_cmd)
+    hexchat.hook_print("Channel Msg Hilight", msg_cmd),
+    hexchat.hook_command('EXTBRIDGE', extbridge_cmd, help="/EXTBRIDGE CONF|RELOAD")
 ]
 
 hexchat.hook_unload(unload)
