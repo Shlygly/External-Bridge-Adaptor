@@ -110,6 +110,8 @@ def extbridge_cmd(word, word_eol, userdata):
                     new_value = hexchat.strip(word_eol[4])
                     hexchat.set_pluginpref(word[3], new_value)
                     LoadPrefs()
+                    if (word[3] == "nick_prefix" and len(re.findall("^[a-zA-Z_\\[\]{}^`|]?[a-zA-Z0-9_\-\\[\]{}^`|]*$", new_value)) > 0):
+                        print("\002\00307/!\\\00314 To prevent conflicts, it's recommanded to use at least 1 char that is not allowed for IRC nicknames in the prefix ! \00307/!\\\017")
                     print("\00307{}\017 has been set to \00307{}\017".format(word[3], new_value))
         else:
             print("Unknown action {} for /EXTBRIDGE CONF".format(word[2]))
