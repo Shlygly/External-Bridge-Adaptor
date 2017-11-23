@@ -83,9 +83,9 @@ def msg_cmd(word, word_eol, userdata):
             oold_nick, onew_nick = re.findall(re_rename_format, word[1])[0]
             oold_nick = hexchat.strip(oold_nick)
             onew_nick = hexchat.strip(onew_nick)
-            old_nick = userlist[oold_nick]
+            old_nick = userlist.pop(oold_nick, None)
             new_nick = FreeNick(onew_nick)
-            userlist[oold_nick] = new_nick
+            userlist[onew_nick] = new_nick
             hexchat.command("RECV :{}!~{}@{} NICK {}".format(old_nick, bot_nick, bot_vhost, new_nick))
             return hexchat.EAT_HEXCHAT
     return hexchat.EAT_NONE
