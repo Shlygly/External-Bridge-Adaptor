@@ -27,7 +27,11 @@ def LoadPrefs():
 
 LoadPrefs()
 
-cmd_nick = None
+def FreeNick(nick):
+    fnick = nick
+    while fnick in list(map(lambda u: u.nick, hexchat.get_list("users"))) + list(userlist.values()):
+        fnick += "_"
+    return fnick
 
 def EmitMsg(nick, message, mode):
     same_user = (hexchat.nickcmp(hexchat.get_info("nick").lower(), nick.lower()) == 0)
@@ -38,8 +42,9 @@ def EmitMsg(nick, message, mode):
         hexchat.emit_print("Channel Msg Hilight", nick, message, mode, "\00306" + nick_prefix + "\00303")
     else:
         hexchat.emit_print("Channel Message", nick, message, mode, "\00306" + nick_prefix + "\00302")
-    # TODO : Gérer la couleur actuelle du chan
-    # hexchat.command("GUI COLOR {}".format("3" if hilight else "2"))
+
+cmd_nick = None
+userlist = {}
 
 def msg_cmd(word, word_eol, userdata):
     global cmd_nick
@@ -61,20 +66,26 @@ def msg_cmd(word, word_eol, userdata):
             return hexchat.EAT_HEXCHAT
         # Someone joined
         elif (len(re.findall(re_join_format, word[1])) > 0):
-            nick = nick_prefix + hexchat.strip(re.findall(re_join_format, word[1])[0])
+            onick = hexchat.strip(re.findall(re_join_format, word[1])[0])
+            nick = FreeNick(onick)
+            userlist[onick] = nick
             hexchat.command("RECV :{}!~{}@{} JOIN {}".format(nick, bot_nick, bot_vhost, hexchat.get_info("channel")))
             hexchat.command("RECV :{}!~{}@{} MODE {} +v {}".format(bot_nick, bot_nick, bot_vhost, hexchat.get_info("channel"), nick))
             return hexchat.EAT_HEXCHAT
         # Someone quit
         elif (len(re.findall(re_quit_format, word[1])) > 0):
-            nick = nick_prefix + hexchat.strip(re.findall(re_quit_format, word[1])[0])
+            onick = hexchat.strip(re.findall(re_quit_format, word[1])[0])
+            nick = userlist.pop(onick, None)
             hexchat.command("RECV :{}!~{}@{} QUIT {}".format(nick, bot_nick, bot_vhost, quit_message))
             return hexchat.EAT_HEXCHAT
         # Someone change his nick
         elif (len(re.findall(re_rename_format, word[1])) > 0):
-            old_nick, new_nick = re.findall(re_rename_format, word[1])[0]
-            old_nick = nick_prefix + hexchat.strip(old_nick)
-            new_nick = nick_prefix + hexchat.strip(new_nick)
+            oold_nick, onew_nick = re.findall(re_rename_format, word[1])[0]
+            oold_nick = hexchat.strip(oold_nick)
+            onew_nick = hexchat.strip(onew_nick)
+            old_nick = userlist[oold_nick]
+            new_nick = FreeNick(onew_nick)
+            userlist[oold_nick] = new_nick
             hexchat.command("RECV :{}!~{}@{} NICK {}".format(old_nick, bot_nick, bot_vhost, new_nick))
             return hexchat.EAT_HEXCHAT
     return hexchat.EAT_NONE
@@ -110,8 +121,8 @@ def extbridge_cmd(word, word_eol, userdata):
                     new_value = hexchat.strip(word_eol[4])
                     hexchat.set_pluginpref(word[3], new_value)
                     LoadPrefs()
-                    if (word[3] == "nick_prefix" and len(re.findall("^[a-zA-Z_\\[\]{}^`|]?[a-zA-Z0-9_\-\\[\]{}^`|]*$", new_value)) > 0):
-                        print("\002\00307/!\\\00314 To prevent conflicts, it's recommanded to use at least 1 char that is not allowed for IRC nicknames in the prefix ! \00307/!\\\017")
+                    # if (word[3] == "nick_prefix" and len(re.findall("^[a-zA-Z_\\[\]{}^`|]?[a-zA-Z0-9_\-\\[\]{}^`|]*$", new_value)) > 0):
+                        # print("\002\00307/!\\\00314 To prevent conflicts, it's recommanded to use at least 1 char that is not allowed for IRC nicknames in the prefix ! \00307/!\\\017")
                     print("\00307{}\017 has been set to \00307{}\017".format(word[3], new_value))
         else:
             print("Unknown action {} for /EXTBRIDGE CONF".format(word[2]))
@@ -122,7 +133,9 @@ def extbridge_cmd(word, word_eol, userdata):
     return hexchat.EAT_ALL
 
 def unload(userdata):
-    global hooks
+    while len(userlist) > 0:
+        nick = userlist.pop(list(userlist.keys())[0], None)
+        hexchat.command("RECV :{}!~{}@{} QUIT {}".format(nick, bot_nick, bot_vhost, quit_message))
     for hook in hooks:
         hexchat.unhook(hook)
 
