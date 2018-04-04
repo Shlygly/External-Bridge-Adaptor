@@ -9,7 +9,7 @@ __author__ = 'Stockage'
 CONF_PREFIX = "extbridge_"
 
 class Bridge:
-    def __init__(self, bot_channel, bot_server, bot_nick, quit_message="Disconnected from discord", nick_prefix="<DSC>", re_msg_format="^<([^>]+)> (.+)$", re_cmd_format="^Cmd by (.+)$"):
+    def __init__(self, bot_channel, bot_server, bot_nick, quit_message="Disconnected from discord", nick_prefix="<DSC>", re_msg_format="^<([^>]+)> (.*)$", re_cmd_format="^Cmd by (.+)$"):
         self.bot_channel = bot_channel
         self.bot_server = bot_server
         self.bot_nick = bot_nick
@@ -139,7 +139,7 @@ def extbridge_cmd(word, word_eol, userdata):
             else:
                 try:
                     print(bridge_list[int(word[3])])
-                except Error:
+                except:
                     print("Bad index value.")
         elif word[2].lower() == "set":
             if len(word) < 6:
@@ -148,8 +148,9 @@ def extbridge_cmd(word, word_eol, userdata):
             else:
                 try:
                     setattr(bridge_list[int(word[3])], word[4], word_eol[5])
+                    SavePref()
                     print("Parameter \00307{}\017 for bridge \00307N°{}\017 has been changed to \00307{}\017.".format(word[4], word[3], word_eol[5]))
-                except Error:
+                except:
                     print("Bad index value.")
         elif word[2].lower() == "del":
             if len(word) < 4:
@@ -160,7 +161,7 @@ def extbridge_cmd(word, word_eol, userdata):
                     del bridge_list[int(word[3])]
                     SavePref()
                     print("Bridge deleted.")
-                except Error:
+                except:
                     print("Bad index value.")
     elif word[1].upper() == "CONF":
         if len(word) < 3:
