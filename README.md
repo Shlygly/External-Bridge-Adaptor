@@ -44,6 +44,8 @@ Usage : `/EXTBRIDGE BRIDGE list|add <channel> <server> <bot_nick>|show <index>|s
 
 Use `/EXTBRIDGE BRIDGE add <channel> <server> <bot_nick>` to add a new bridge. Replace `<channel>` by the correct channel, `<server>` by the server and `<bot_nick>` by the nick of bridge bot
 
+You can use `*` at the begining of the server url to match multiple server. For example, `*.irc.server.net` will match `foo.irc.server.net` and also `bar.irc.server.net`
+
 You can also just use `/EXTBRIDGE BRIDGE add` to get a preformated command with channel and server set to the current context
 
 Check if it has been correctly added with `/EXTBRIDGE BRIDGE list`
@@ -54,10 +56,10 @@ Use `/EXTBRIDGE BRIDGE list` to list every bridge index, server and channel
 
 _Example_ :
 ```
-| #   | server                   | channel          |
-|-----|--------------------------|------------------|
-| 0   | Skadi.IRC.Worldnet.Net   | #NewbieContest   |
-| 1   | irc.hackerzvoice.net     | #rtfm            |
+| #   | server                 | channel          |
+|-----|------------------------|------------------|
+| 0   | *.IRC.Worldnet.Net     | #NewbieContest   |
+| 1   | irc.hackerzvoice.net   | #rtfm            |
  ```
 
 ##### Edit a bridge

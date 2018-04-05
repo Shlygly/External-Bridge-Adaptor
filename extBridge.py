@@ -24,6 +24,14 @@ class Bridge:
         for attr in ["bot_channel", "bot_server", "bot_nick", "quit_message", "nick_prefix", "re_msg_format", "re_cmd_format"]:
             bstr += "\00305{}\00308 = \017{}\n".format(attr, getattr(self, attr))
         return bstr
+    
+    def IsBridgeMessage(self, context, nick):
+        if self.bot_server.startswith("*"):
+            correct_serv = context.get_info("server").lower().endswith(self.bot_server.lower()[1:])
+        else:
+            correct_serv = context.get_info("server").lower() == self.bot_server.lower()
+        return correct_serv and context.get_info("channel").lower() == self.bot_channel.lower() and hexchat.nickcmp(hexchat.strip(nick), self.bot_nick) == 0
+        
 
 def InitPref(name, default_value):
     value = hexchat.get_pluginpref(CONF_PREFIX + name)
@@ -82,23 +90,22 @@ def msg_cmd(word, word_eol, userdata):
     context = hexchat.get_context()
     for bridge in bridge_list:
         # Current server/channel
-        if context.get_info("server").lower() == bridge.bot_server.lower() and context.get_info("channel").lower() == bridge.bot_channel.lower():
-            if hexchat.nickcmp(hexchat.strip(word[0]), bridge.bot_nick) == 0:
-                # Classic message
-                if len(re.findall(bridge.re_msg_format, word[1])) > 0:
-                    nick, message = re.findall(bridge.re_msg_format, word[1])[0]
-                    nick = hexchat.strip(nick)
-                    EmitMsg(context, nick, message, word[2] if len(word) > 2 else "", bridge.nick_prefix)
-                    return hexchat.EAT_HEXCHAT
-                # Command (part. 1)
-                elif len(re.findall(bridge.re_cmd_format, word[1])) > 0:
-                    bridge.cmd_nick = hexchat.strip(re.findall(bridge.re_cmd_format, word[1])[0])
-                    return hexchat.EAT_HEXCHAT
-                # Command (part. 2)
-                elif bridge.cmd_nick != None and word[1][0] == "!":
-                    EmitMsg(context, bridge.cmd_nick, word[1], word[2] if len(word) > 2 else "", bridge.nick_prefix)
-                    bridge.cmd_nick = None
-                    return hexchat.EAT_HEXCHAT
+        if bridge.IsBridgeMessage(context, word[0]):
+            # Classic message
+            if len(re.findall(bridge.re_msg_format, word[1])) > 0:
+                nick, message = re.findall(bridge.re_msg_format, word[1])[0]
+                nick = hexchat.strip(nick)
+                EmitMsg(context, nick, message, word[2] if len(word) > 2 else "", bridge.nick_prefix)
+                return hexchat.EAT_HEXCHAT
+            # Command (part. 1)
+            elif len(re.findall(bridge.re_cmd_format, word[1])) > 0:
+                bridge.cmd_nick = hexchat.strip(re.findall(bridge.re_cmd_format, word[1])[0])
+                return hexchat.EAT_HEXCHAT
+            # Command (part. 2)
+            elif bridge.cmd_nick != None and word[1][0] == "!":
+                EmitMsg(context, bridge.cmd_nick, word[1], word[2] if len(word) > 2 else "", bridge.nick_prefix)
+                bridge.cmd_nick = None
+                return hexchat.EAT_HEXCHAT
     return hexchat.EAT_NONE
 
 def extbridge_cmd(word, word_eol, userdata):
